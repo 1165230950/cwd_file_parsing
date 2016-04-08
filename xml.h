@@ -1,5 +1,5 @@
-#ifndef txt_h
-#define txt_h
+#ifndef xml_h
+#define xml_h
 
 typedef struct result{
 	int line;
@@ -9,7 +9,7 @@ typedef struct result{
 typedef struct message{
 	char *buf;
 }message;
-struct result* parsing_txt(struct message* head);
+struct result* parsing_xml(struct message* head);
 
 
 #define

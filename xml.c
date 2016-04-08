@@ -1,6 +1,6 @@
-#include "txt.h"
+#include "xml.h"
 
-struct result* parsing_txt(struct message *head)
+struct result* parsing_xml(struct message *head)
 {
 	return ;
 }
