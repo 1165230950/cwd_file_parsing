@@ -2,6 +2,7 @@
 #define head_h
 
 #define check_input if(argc >2) error()
+void error();
 
 
-#define
+#endif

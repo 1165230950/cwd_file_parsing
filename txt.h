@@ -12,4 +12,4 @@ typedef struct message{
 struct result* parsing_txt(struct message* head);
 
 
-#define
+#endif
