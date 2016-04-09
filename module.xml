@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modules>
+	<module number="1" id="2" name="system" />
+	<module number="2" id="1" name="audiovideo" />
+	<module number="3" id="15" name="osd" />
+	<module number="4" id="255" name="service" />
+	<module number="5" id="253" name="timer" />
+	<module number="6" id="4" name="radio" />
+	<module number="7" id="3" name="key" />
+</modules>
