@@ -19,7 +19,11 @@ int main(int argc, char *argv[])
 		p->buf = malloc(sizeof(argv[1]));
 		strcpy(p->buf, argv[1]);
 		result_xml *q = parsing_xml(p);
-		printf("in main\n");
+		if(q == NULL)
+		{
+			printf("文件解析失败\n");
+			exit(0);
+		}
 		int i;
 		for(i=0; i<(q->line); i++)
 		{

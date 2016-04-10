@@ -26,7 +26,8 @@ struct result_xml* parsing_xml(struct message_xml *head)
 		line_number++;
 	}
 	fclose(fd);
-//	printf("文件有 %d 行\n", line_number);
+
+
 	int line = 0, sign = 0, line_sign = 0;	//声明标记变量
 	int end = 0;
 	fd = fopen(message.buf, "r");
@@ -75,6 +76,7 @@ struct result_xml* parsing_xml(struct message_xml *head)
 		}else{				//解析body内容
 			line_sign = 0;
 			int i = 0;
+			char name_line[15];
 			while(1)
 			{
 				char name[15];
@@ -170,6 +172,7 @@ struct result_xml* parsing_xml(struct message_xml *head)
 								strncpy(result->value[result->line]+len2, name+len+1,len1-1);
 								len2 += len1;
 								result->value[result->line][len2] = '\0';
+								strcpy(name_line, result->value[result->line]+len2-len1);
 //								printf("line=%d case4 =%s\n",result->line, result->value[result->line]);
 								break;
 							}else{
@@ -193,10 +196,24 @@ struct result_xml* parsing_xml(struct message_xml *head)
 							return NULL;
 					}
 					if(end == 1) break;
+				}//end switch()
+			}//end while(1)
+			if(end != 1)
+			{
+				char buf[256];
+				strcat(name_line, ".txt");
+				FILE *fp = fopen(name_line, "r");
+				if(fp == NULL)
+				{
+					printf("not find %s\n", name_line);
+				}else{
+					fgets(buf, sizeof(buf), fp);
+					printf("buf =%s", buf);
+					fclose(fp);
 				}
 			}
-		}
-	}
+		}//end else
+	}//end while(fgets)
 	if(line == 0)
 	{
 		fclose(fd);
