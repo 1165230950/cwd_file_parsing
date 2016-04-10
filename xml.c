@@ -14,22 +14,19 @@ struct result_xml* parsing_xml(struct message_xml *head)
 	head = NULL;
 	/*======================开始解析文件========================*/
 	result_xml *result = malloc(sizeof(result_xml));
+	result->value = malloc(100);
+	result->line = 0;
 
 	char file_content[256];
 	/*====================查看文件有多少行======================*/
 	int line_number = 0;
-	FILE *fd = fopen("./modult.xml", "r+");
-printf("aaaaaaaaaaaaaaaaaaaaaaaaaaa\n");
-	fgets(file_content, 100, fd);
-	return 0;
+	FILE *fd = fopen(message.buf, "r");
 	while(fgets(file_content, sizeof(file_content), fd))
 	{
 		line_number++;
 	}
 	fclose(fd);
-	printf("文件有 %d 行\n", line_number);
-	result->value = malloc(sizeof(result->value) * line_number);
-	
+//	printf("文件有 %d 行\n", line_number);
 	int line = 0, sign = 0, line_sign = 0;	//声明标记变量
 	int end = 0;
 	fd = fopen(message.buf, "r");
@@ -37,119 +34,165 @@ printf("aaaaaaaaaaaaaaaaaaaaaaaaaaa\n");
 	{
 		if(end == 1)
 		{
+//			printf("in end\n");
+			int i =0;
+			while(file_content[i] == ' ' || file_content[i] == '\t') i++;
+			if(file_content[i+1] == '\n') continue;
+//			if(strlen(file_content) == 0) break;
+			printf("检测到 </modules> 后面还有字符\n");
 			return NULL;
 		}
 		line++;
-		printf("line = %d %s", line, file_content);
+//		printf("line=%d %s", line, file_content);
 		if(sign == 0)	//解析第一行信息
 		{
 			int i=0;
-			while(file_content[i] == '\b' || file_content[i] == '\t') i++;
+			while(file_content[i] == ' ' || file_content[i] == '\t') i++;
 			if(file_content[i] != '\n')
 			{
 				if(!strncmp(file_content+i, xml_head, 38))
 				{
 					i += 38;
-					while(file_content[i] == '\b' || file_content[i] == '\t') i++;
-					if(file_content[i] != '\n') exit(0);
+					while(file_content[i] == ' ' || file_content[i] == '\t') i++;
+					if(file_content[i+1] != '\n') exit(0);
 					else sign = 1;
 				}
 			}
 		}else if(sign == 1)	//解析第二行信息
 		{
 			int i=0;
-			while(file_content[i] == '\b' || file_content[i] == '\t') i++;
+			while(file_content[i] == ' ' || file_content[i] == '\t') i++;
 			if(file_content[i] != '\n')
 			{
 				if(!strncmp(file_content+i, xml_body1, 9))
 				{
 					i += 9;
-					while(file_content[i] == '\b' || file_content[i] == '\t') i++;
-					if(file_content[i] != '\n') exit(0);
+					while(file_content[i] == ' ' || file_content[i] == '\t') i++;
+					if(file_content[i+1] != '\n') exit(0);
 					else sign = 2;
 				}
 			}
-		}else{
+		}else{				//解析body内容
 			line_sign = 0;
+			int i = 0;
 			while(1)
 			{
 				char name[15];
-				int i = 0, j = 0;
-				while(file_content[i] == '\b' || file_content[i] == '\t')	//去除空格
+				int j = 0;
+				while(file_content[i] == ' ' || file_content[i] == '\t')	//去除空格
 				{
 					i++;
 				}
+				if(file_content[i+1] == '\n' && line_sign == 0) break;
 				if(file_content[i] == '\n' && line_sign == 5) break;
-				while(file_content[i] != '\b' && file_content[i] != '\t' && file_content[i] != '\n')		//提取字符串
+				while(file_content[i] != ' ' && file_content[i] != '\t' && file_content[i] != '\n')		//提取字符串
 				{
 					name[j] = file_content[i];
 					i++;
 					j++;
-					line_sign++;		//给字符串上标记
 				}
+				line_sign++;		//给字符串上标记
 
 				if(line_sign > 0)	//提取信息
 				{
+//		printf("解析第 %d 行 第 %d 列\n", line, line_sign);
 					name[j] = '\0';
 					static int len2 = 0;
 					int len, len1;
 					switch(line_sign)
 					{
 						case 1:
-							if(!strcmp(name, xml_body2))
+							if(!strncmp(name, xml_body2, strlen(xml_body2)))
 							{
+								printf("检测到 </modules>\n");
 								end = 1;
 								break;
-							}
-							if(!strcmp(name, column1)) break;
+							}else if(!strcmp(name, column1)) break;
 							else{
+								printf("第 %d 行 第一列出错\n", line);
 								return NULL;
 							}
 						case 2:
 							len = strlen(column2);
 							len2 = strlen(name+len+1);
-							if(name[len+1] != '\"' || name[j-1] != '\"') return NULL;
+							if(name[len] != '\"' || name[j-1] != '\"') 
+							{
+								printf("第 %d 行 第二列出错\n", line);
+								return NULL;
+							}
 							if(!strncmp(name, column2, len))
 							{
-							result->value[0] = malloc(value_length);
-								strncpy(result->value[line], name+len+1,len1-1);
-								result->value[line][len2] = '\b';
-								printf("number = %s", "number");
+//								printf("拷贝第 %d 行数据\n", line);
+								result->value[result->line] = malloc(value_length);
+								if(result->value[result->line] == NULL)
+								{
+									printf("第 %d 行空间分配失败\n", line);
+									exit(0);
+								}
+								strncpy(result->value[result->line], name+len+1, len2-1);
+
+								result->value[result->line][len2-1] = ' ';
+//								printf("case2 =%s\n", result->value[result->line]);
+								break;
+							}else{
+								printf("第 %d 行 第四列出错\n", line);
+								return NULL;
 							}
-							break;
 						case 3:
 							len = strlen(column3);
 							len1 = strlen(name+len+1);
-							if(name[len+1] != '\"' || name[j-1] != '\"') return NULL;
+							if(name[len] != '\"' || name[j-1] != '\"')
+							{
+								printf("第 %d 行 第三列出错\n", line);
+								return NULL;
+							}
 							if(!strncmp(name, column3, len))
 							{
-								strncpy(result->value[line]+len2, name+len+1,len1-1);
+								strncpy(result->value[result->line]+len2, name+len+1,len1-1);
 								len2 += len1;
-								result->value[line][len2] = '\b';
-								printf("id = %s", "id");
+								result->value[result->line][len2-1] = ' ';
+//								printf("case3 =%s\n", result->value[result->line]);
+								break;
+							}else{
+								printf("第 %d 行 第四列出错\n", line);
+								return NULL;
 							}
-							
-							break;
 						case 4:
 							len = strlen(column4);
 							len1 = strlen(name+len+1);
-							if(name[len+1] != '\"' || name[j-1] != '\"') return NULL;
+							if(name[len] != '\"' || name[j-1] != '\"')
+							{
+								printf("第 %d 行 第四列出错\n", line);
+								return NULL;
+							}
 							if(!strncmp(name, column4, len))
 							{
-								strncpy(result->value[line]+len2, name+len+1,len1-1);
+								strncpy(result->value[result->line]+len2, name+len+1,len1-1);
 								len2 += len1;
-								result->value[line][len2] = '\0';
-								printf("name = %s", "name");
+								result->value[result->line][len2] = '\0';
+//								printf("line=%d case4 =%s\n",result->line, result->value[result->line]);
+								break;
+							}else{
+								printf("第 %d 行 第四列出错\n", line);
+								return NULL;
 							}
-							
-							break;
 						case 5:
-							if(!strcmp(name, column5)) break;
-							else return NULL;
+							if(!strncmp(name, column5, strlen(column5)))
+							{
+								result->line ++;
+//								printf("lien =%d\n", result->line);
+								break;
+							}
+							else{
+								printf("第 %d 行 第五列出错\n", line);
+								return NULL;
+							}
 						default:
-							printf("parsing error\n");
+							printf("第 %d 行出错 />后面有字符无法解析\n", line);
+							result->line --;
 							return NULL;
 					}
+					if(end == 1) break;
 				}
 			}
 		}

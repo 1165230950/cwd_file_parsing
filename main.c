@@ -19,7 +19,12 @@ int main(int argc, char *argv[])
 		p->buf = malloc(sizeof(argv[1]));
 		strcpy(p->buf, argv[1]);
 		result_xml *q = parsing_xml(p);
-		printf("llllllllllllllllllllll\n");
+		printf("in main\n");
+		int i;
+		for(i=0; i<(q->line); i++)
+		{
+			printf("line =%d %s\n", i, q->value[i]);
+		}
 	}else if(!strcmp(argv[1]+len-5, html)){
 		printf("input html file\n");
 		message_html *p = malloc(sizeof(message_html));
