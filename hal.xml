@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hals>
+	<hal number="1" id="1" moduleid="2" name="system" />
+	<hal number="2" id="255" moduleid="255" name="service" />
+	<hal number="3" id="2" moduleid="1" name="audio" />
+	<hal number="4" id="3" moduleid="1" name="video" />
+	<hal number="5" id="4" moduleid="3" name="key" />
+	<hal number="6" id="16" moduleid="4" name="radio" />
+</hals>
