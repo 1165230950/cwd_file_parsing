@@ -6,10 +6,20 @@
 
 struct result_xml* parsing_xml(struct message_xml *head)
 {
-	if(head == NULL) return NULL;
+//printf("input parsing_xml\n");
+	if(head == NULL)
+	{
+		printf("head == NULL\n");
+		return NULL;
+	}
 	/*======================将文件信息保存=======================*/
 	struct message_xml message;
 	message.buf = (char *)malloc(strlen(head->buf)+1);
+	if(message.buf == NULL)
+	{
+		printf("message.buf malloc failed\n");
+		return NULL;
+	}
 	strcpy(message.buf, head->buf);
 	free(head);
 	head = NULL;
@@ -20,7 +30,7 @@ struct result_xml* parsing_xml(struct message_xml *head)
 	FILE *fd = fopen(message.buf, "r");
 	if(fd == NULL)
 	{
-		printf("文件打开失败\n");
+		printf("message.buf(fd1) open failed\n");
 		return NULL;
 	}
 	while(fgets(file_content, sizeof(file_content), fd))
@@ -29,26 +39,47 @@ struct result_xml* parsing_xml(struct message_xml *head)
 	}
 	fclose(fd);
 
+//printf("start parsing file\n");
 	/*======================开始解析文件========================*/
-	line *line_result = malloc(sizeof(line));	//用来存储读到行的信息
+	result_xml *xml = malloc(sizeof(result_xml));
+	if(xml == NULL)
+	{
+		printf("xml malloc failed\n");
+		return NULL;
+	}
+	xml->line = 0;
 	module *module = malloc(sizeof(module));
-	hal *hal = malloc(sizeof(module));
+	if(module == NULL)
+	{
+		printf("module malloc failed\n");
+		return NULL;
+	}
+	module->sign = 0;
+	hal *hal = malloc(sizeof(hal));
+	if(hal == NULL)
+	{
+		printf("hal malloc failed\n");
+		return NULL;
+	}
+	hal->sign = 0;
 	
 
-//	result_xml *result = malloc(sizeof(result_xml));
-//	result->value = malloc(100);
-//	result->line = 0;
 	int line = 0, sign = 0, line_sign = 0;	//声明标记变量
 	int end = 0;	
 	FILE *fdd = fopen(message.buf, "r");
+	if(fdd == NULL)
+	{
+		printf("message.buf(fdd) open failed\n");
+		return NULL;
+	}
 	fd = fopen(message.buf, "r");
 	if(fd == NULL)
 	{
-		printf("文件打开失败\n");
+		printf("message.buf(fd2) open failed\n");
 		return NULL;
 	}
 
-
+//printf("start read file\n");
 	while(fgets(file_content, sizeof(file_content), fd))	//一行一行的读出文件内容
 	{
 		if(end == 1)
@@ -70,7 +101,11 @@ struct result_xml* parsing_xml(struct message_xml *head)
 				{
 					i += 38;
 					while(file_content[i] == ' ' || file_content[i] == '\t') i++;
-					if(file_content[i+1] != '\n') exit(0);
+					if(file_content[i+1] != '\n')
+					{
+						printf("第一行检测到后面还有字符\n");
+						exit(0);
+					}
 					else sign = 1;
 				}
 			}
@@ -84,18 +119,28 @@ struct result_xml* parsing_xml(struct message_xml *head)
 				{
 					i += strlen(xml_module1);
 					while(file_content[i] == ' ' || file_content[i] == '\t') i++;
-					if(file_content[i+1] != '\n') exit(0);
+					if(file_content[i+1] != '\n')
+					{
+						printf("第二行检测到后面还有字符(module)\n");
+						exit(0);
+					}
 					sign = 2;
+					xml->sign = 2;
 					strncpy(module->dir, xml_module1+1, strlen(xml_module1)-3);
-					module->dir[strlen(xml_module1)-2] = '\0';
+					module->dir[strlen(xml_module1)-3] = '\0';
 				}else 
 			
 				if(!strncmp(file_content+i, xml_hal1, strlen(xml_hal1)))
 				{
 					i += strlen(xml_hal1);
 					while(file_content[i] == ' ' || file_content[i] == '\t') i++;
-					if(file_content[i+1] != '\n') exit(0);
+					if(file_content[i+1] != '\n')
+					{
+						printf("第二行检测到后面还有字符(hal)\n");
+						exit(0);
+					}
 					sign = 3;
+					xml->sign = 3;
 					strncpy(hal->dir, xml_hal1+1, strlen(xml_hal1)-3);
 					hal->dir[strlen(xml_hal1)-3] = '\0';
 				}else{
@@ -127,7 +172,6 @@ struct result_xml* parsing_xml(struct message_xml *head)
 
 				if(line_sign > 0)	//提取信息
 				{
-//		printf("解析第 %d 行 第 %d 列\n", line, line_sign);
 					name[j] = '\0';
 					static int len2 = 0;
 					int len, len1;
@@ -171,20 +215,6 @@ struct result_xml* parsing_xml(struct message_xml *head)
 							}
 							if(!strncmp(name, column2, len))
 							{
-							//	strncpy(line_result->column_number, name+len+1, len2-1);
-							//	line_result->column_number[len2-1] = '\0';
-//								printf("拷贝第 %d 行数据\n", line);
-							//	result->value[result->line] = malloc(value_length);
-							/*	if(result->value[result->line] == NULL)
-								{
-									printf("第 %d 行空间分配失败\n", line);
-									exit(0);
-								}
-							*/
-							//	strncpy(result->value[result->line], name+len+1, len2-1);
-
-							//	result->value[result->line][len2-1] = ' ';
-//								printf("case2 =%s\n", result->value[result->line]);
 								break;
 							}else{
 								printf("第 %d 行 第二列出错\n", line);
@@ -200,20 +230,25 @@ struct result_xml* parsing_xml(struct message_xml *head)
 							}
 							if(!strncmp(name, column3, len))
 							{
-							//	strncpy(result->value[result->line]+len2, name+len+1,len1-1);
-							//	strncpy(result->value[result->line], name+len+1,len1-1);
-							//	result->value[result->line][len1-1] = '\0';
 								if(sign == 2)
 								{
-									strcpy(module->id,name);
-									strncpy(module->module_id, name+len+1,len1-1);
-									module->module_id[len1-1] = '\0';
+									if(strcpy(module->id,name) == NULL)
+									{
+										printf("module->id copy failed\n");
+										return NULL;
+									}
+									module->module_id[module->sign] = malloc(255);
+									if(module->module_id[module->sign] == NULL)
+									{
+										printf("module_id[%d] malloc failed\n", module->sign);
+										return NULL;
+									}
+									strncpy(module->module_id[module->sign], name+len+1,len1-1);
+									module->module_id[module->sign][len1-1] = '\0';
 								}else{
 									strcpy(hal->id,name);
 								}
 								len2 += len1;
-							//	result->value[result->line][len2-1] = ' ';
-//								printf("case3 =%s\n", result->value[result->line]);
 								break;
 							}else{
 								printf("第 %d 行 第四列出错\n", line);
@@ -231,14 +266,16 @@ struct result_xml* parsing_xml(struct message_xml *head)
 								}
 								if(!strncmp(name, column4, len))
 								{
-								//	strncpy(result->value[result->line]+len2, name+len+1,len1-1);
-									strncpy(module->file_name, name+len+1,len1-1);
-									module->file_name[len1-1] = '\0';
+									module->file_name[module->sign] = malloc(255);
+									if(module->file_name == NULL)
+									{
+										printf("module->file_name[%d] malloc failed\n", module->sign);
+										return NULL;
+									}
+									strncpy(module->file_name[module->sign], name+len+1,len1-1);
+									module->file_name[module->sign][len1-1] = '\0';
 									strcpy(module->name,name);
 									len2 += len1;
-								//	result->value[result->line][len2-1] = '\0';
-								//	strcpy(name_line, result->value[result->line]+len2-len1);
-//									printf("line=%d case4 =%s\n",result->line, result->value[result->line]);
 									break;
 								}else{
 									printf("第 %d 行 第四列出错\n", line);
@@ -255,14 +292,15 @@ struct result_xml* parsing_xml(struct message_xml *head)
 								}
 								if(!strncmp(name, hal_moduleid, len))
 								{
-								//	strncpy(result->value[result->line]+len2, name+len+1,len1-1);
-									strncpy(hal->moduleid, name+len+1,len1-1);
-									hal->moduleid[len1-1] = '\0';
-								//	strcpy(module->name,name);
+									hal->moduleid[hal->sign] = malloc(255);
+									if(hal->moduleid[hal->sign] == NULL)
+									{
+										printf("hal->moduleid[%d] malloc failed\n", hal->sign);
+										return NULL;
+									}
+									strncpy(hal->moduleid[hal->sign], name+len+1,len1-1);
+									hal->moduleid[hal->sign][len1-1] = '\0';
 									len2 += len1;
-								//	result->value[result->line][len2-1] = '\0';
-								//	strcpy(name_line, result->value[result->line]+len2-len1);
-//									printf("line=%d case4 =%s\n",result->line, result->value[result->line]);
 									break;
 								}else{
 									printf("第 %d 行 第四列出错\n", line);
@@ -274,8 +312,7 @@ struct result_xml* parsing_xml(struct message_xml *head)
 							{
 								if(!strncmp(name, column5, strlen(column5)))
 								{
-								//	result->line ++;
-//									printf("lien =%d\n", result->line);
+									module->sign ++;
 									break;
 								}else{
 									printf("第 %d 行 第五列出错\n", line);
@@ -292,17 +329,19 @@ struct result_xml* parsing_xml(struct message_xml *head)
 								}
 								if(!strncmp(name, column4, len))
 								{
-								//	strncpy(result->value[result->line]+len2, name+len+1,len1-1);
-									strncpy(hal->file_name, name+len+1,len1-1);
-									hal->file_name[len1-1] = '\0';
+									hal->file_name[hal->sign] = malloc(255);
+									if(hal->file_name[hal->sign] == NULL)
+									{
+										printf("hal->file_name[%d] malloc failed\n", hal->sign);
+										return NULL;
+									}
+									strncpy(hal->file_name[hal->sign], name+len+1,len1-1);
+									hal->file_name[hal->sign][len1-1] = '\0';
 									strcpy(hal->name,name);
 									len2 += len1;
-								//	result->value[result->line][len2-1] = '\0';
-								//	strcpy(name_line, result->value[result->line]+len2-len1);
-//									printf("line=%d case4 =%s\n",result->line, result->value[result->line]);
 									break;
 								}else{
-									printf("第 %d 行 第四列出错\n", line);
+									printf("第 %d 行 第五列出错\n", line);
 									return NULL;
 								}
 							
@@ -312,17 +351,19 @@ struct result_xml* parsing_xml(struct message_xml *head)
 							else{
 								if(!strncmp(name, column5, strlen(column5)))
 								{
+									hal->sign ++;
 									break;
 								}else{
-									printf("第 %d 行 第五列出错\n", line);
+									printf("第 %d 行 第六列出错\n", line);
 									return NULL;
 								}
 								
 							}
 						default:
+							if(sign == 2) module->sign --;
+							else hal->sign --;
 							printf("line_sign=%d\n", line_sign);
 							printf("第 %d 行出错 />后面有字符无法解析\n", line);
-						//	result->line --;
 							return NULL;
 					}//end switch()
 					if(end == 1) break;
@@ -335,9 +376,24 @@ struct result_xml* parsing_xml(struct message_xml *head)
 					int ret = read_module_file_information(module);
 					if(ret == 1)
 					{
-						printf("%s文件匹配失败\n", module->file_name);
+						printf("%s文件匹配失败\n", module->file_name[module->sign-1]);
 					}else{
-						printf("%s文件匹配成功\n", module->file_name);
+						xml->module_name[xml->line] = malloc(255);
+						if(xml->module_name[xml->line] == NULL)
+						{
+							printf("xml->module_name[%d] malloc failed\n", xml->line);
+							return NULL;
+						}
+						xml->module_id[xml->line] = malloc(255);
+						if(xml->module_id == NULL)
+						{
+							printf("xml->module_id[%d] malloc failed\n", xml->line);
+							return NULL;
+						}
+						strcpy(xml->module_name[xml->line], module->file_name[module->sign-1]);
+						strcpy(xml->module_id[xml->line], module->module_id[module->sign-1]);
+					//	printf("%s文件匹配成功 id= %s\n", xml->module_name[xml->line], xml->module_id[xml->line]);
+						xml->line ++;
 					}
 				}else{
 			
@@ -345,9 +401,24 @@ struct result_xml* parsing_xml(struct message_xml *head)
 					int ret = read_hal_file_information(hal);
 					if(ret == 1)
 					{
-						printf("%s文件匹配失败\n", hal->file_name);
+						printf("%s文件匹配失败\n", hal->file_name[hal->sign-1]);
 					}else{
-						printf("%s文件匹配成功\n", hal->file_name);
+						xml->hal_name[xml->line] = malloc(255);
+						if(xml->hal_name[xml->line] == NULL)
+						{
+							printf("xml->hal_name[%d] malloc failed\n", xml->line);
+							return NULL;
+						}
+						xml->moduleid[xml->line] = malloc(255);
+						if(xml->moduleid == NULL)
+						{
+							printf("xml->moduleid[%d] malloc failed\n", xml->line);
+							return NULL;
+						}
+						strcpy(xml->hal_name[xml->line], hal->file_name[hal->sign-1]);
+						strcpy(xml->moduleid[xml->line], hal->moduleid[hal->sign-1]);
+					//	printf("%s文件匹配成功 id= %s\n", xml->hal_name[xml->line], xml->moduleid[xml->line]);
+						xml->line ++;
 					}
 				
 				}
@@ -362,11 +433,17 @@ struct result_xml* parsing_xml(struct message_xml *head)
 		printf("not content\n");
 		return NULL;
 	}else if(end == 1){
-		return NULL;
+		if(xml->sign == 2){
+			printf("module 匹配完成\n");
+			return xml;
+		}else{
+			printf("hal 匹配完成\n");
+			return xml;
+		}
 	}else{
 		fclose(fd);
 		fclose(fdd);
-		printf("read OK\n");
+		printf("匹配中出错\n");
 		return NULL;
 	}
 }

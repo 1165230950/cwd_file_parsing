@@ -6,12 +6,12 @@
 int read_module_file_information(struct xml_module* module)
 {
 	char dir[256];
-	sprintf(dir, "%s/%s.txt", module->dir, module->file_name);
-	printf("path =%s\n", dir);
+	sprintf(dir, "%s/%s.txt", module->dir, module->file_name[module->sign-1]);
+//	printf("path =%s\n", dir);
 	FILE *fp = fopen(dir, "r");
 	if(fp == NULL)
 	{
-		printf("%s.txt打开失败", module->file_name);
+		printf("%s.txt打开失败", module->file_name[module->sign-1]);
 		return 1;
 	}
 	char *buf = malloc(sizeof(char) * 256);
@@ -65,11 +65,11 @@ int read_module_file_information(struct xml_module* module)
 int read_hal_file_information(struct xml_hal *hal)
 {
 	char dir[256];
-	sprintf(dir, "%s/%s.txt", hal->dir, hal->file_name);
+	sprintf(dir, "%s/%s.txt", hal->dir, hal->file_name[hal->sign-1]);
 	FILE *fp = fopen(dir, "r");
 	if(fp == NULL)
 	{
-		printf("%s.txt打开失败", hal->file_name);
+		printf("%s.txt打开失败", hal->file_name[hal->sign-1]);
 		fclose(fp);
 		return 1;
 	}

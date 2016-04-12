@@ -22,13 +22,29 @@
 #define ERROR	1
 
 typedef struct result_xml{
+	int sign;
 	int line;
-	char **value;
+	char *module_id[1024];
+	char *moduleid[1024];
+	char *module_name[1024];
+	char *hal_name[1024];
 }result_xml;
 
 typedef struct message_xml{
 	char *buf;
 }message_xml;
+
+typedef struct module{
+	int max;
+	char *id[255];
+	char *name[255];
+}module_message;
+
+typedef struct hal{
+	int max;
+	char *id[255];
+	char *name[255];
+}hal_message;
 
 typedef struct line_message{
 	char format[256];
